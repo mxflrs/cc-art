@@ -1,3 +1,5 @@
+@use '../abstracts/variables' as *;
+
 .navbar {
     display: flex;
     justify-content: space-between;

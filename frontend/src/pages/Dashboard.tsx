@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Card } from './Card';
-import { Grid } from './Grid';
-import { SplitLayout } from './SplitLayout';
-import { ContextSidebar } from './ContextSidebar';
-import { Modal } from '../Modal';
-import { Button } from '../Button';
-import { Input } from '../Input';
-import { cardService } from '../../services/cardService';
-import type { Topic, Style, Place, Item } from '../../types/card';
+import { Card } from '../components/Dashboard/Card';
+import { Grid } from '../components/Dashboard/Grid';
+import { SplitLayout } from '../components/Dashboard/SplitLayout';
+import { ContextSidebar } from '../components/Dashboard/ContextSidebar';
+import { Modal } from '../components/Modal';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { cardService } from '../services/cardService';
+import type { Topic, Style, Place, Item } from '../types/card';
 
 type Level = 'TOPIC' | 'STYLE' | 'PLACE' | 'ITEM';
 
 const PREDEFINED_PLACES = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom', 'Dining Room', 'Office', 'Garage', 'Garden', 'Other'];
 
-export const CardSystem: React.FC = () => {
+export const Dashboard: React.FC = () => {
     const [level, setLevel] = useState<Level>('TOPIC');
     const [topics, setTopics] = useState<Topic[]>([]);
     const [currentTopic, setCurrentTopic] = useState<Topic | null>(null);

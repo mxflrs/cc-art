@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
 import { useAuthStore } from './store/useAuthStore';
-import { CardSystem } from './components/CardSystem';
 import { AuthenticatedLayout } from './components/AuthenticatedLayout';
 import './styles/main.scss';
 
@@ -25,7 +25,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <CardSystem />
+              <Dashboard />
             </ProtectedRoute>
           }
         />

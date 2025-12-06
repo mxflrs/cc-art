@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { Text } from '../components/Text';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { Breadcrumbs } from '../components/CardSystem/Breadcrumbs';
+import { Breadcrumbs } from '../components/Dashboard/Breadcrumbs';
 import styles from './Login.module.scss';
 
 export const Login: React.FC = () => {
@@ -49,14 +49,14 @@ export const Login: React.FC = () => {
 
     // Breadcrumb items for login page (showing the app structure)
     const breadcrumbs = [
-        { label: 'ACC Art Planner', onClick: () => {} },
-        { label: 'Login', onClick: () => {} }
+        { label: 'ACC Art Planner', onClick: () => { } },
+        { label: 'Login', onClick: () => { } }
     ];
 
     return (
         <div className={styles.container}>
             <Breadcrumbs items={breadcrumbs} />
-            
+
             <div className={styles.content}>
                 <div className={styles.cardContainer}>
                     <div className={styles.cardHeader}>

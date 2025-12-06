@@ -1,20 +1,27 @@
+@use '../abstracts/variables' as *;
+
 .split-layout {
     display: flex;
+    height: 100vh;
     width: 100%;
-    height: calc(100vh - 64px);
-    margin-top: 64px;
+    padding-top: 64px;
     background-color: $bg-color-base;
-    overflow: hidden;
     position: relative;
 
     &-sidebar-wrapper {
         height: 100%;
         background-color: $bg-color-container;
         z-index: 10;
-        transition: transform 0.3s ease;
+        transition: width 0.3s ease, min-width 0.3s ease, flex-basis 0.3s ease;
+        width: 200px;
+        min-width: 200px;
+        flex-shrink: 0;
+        overflow: hidden;
 
         &.hidden {
-            transform: translateX(-100%);
+            width: 0;
+            min-width: 0;
+            flex-basis: 0;
         }
     }
 
@@ -23,11 +30,14 @@
         padding: 24px;
         overflow-y: auto;
         background-color: $bg-color-base;
+        min-width: 0;
+        /* Prevent flex item from overflowing */
     }
 
     &-toggle-btn {
         position: fixed;
-        left: 0;
+        left: 200px;
+        /* Initial position matches sidebar width */
         bottom: 20px;
         background-color: $bg-color-container;
         border: 1px solid $border-color-split;
@@ -40,7 +50,7 @@
         justify-content: center;
         cursor: pointer;
         z-index: 100;
-        transition: all 0.2s;
+        transition: left 0.3s ease;
         color: $text-color-secondary;
         font-size: 16px;
         outline: none;
@@ -54,8 +64,19 @@
             color: white;
         }
 
+        /* When sidebar is hidden (button is not 'open' state in logic, but UI wise it's collapsed) */
+        /* Logic in component: !sidebarOpen adds .hidden to wrapper. Button has .open when sidebarOpen is true? Wait, let's check component logic. */
+        /* Component: sidebarOpen=true -> wrapper has NO .hidden. Button has .open. */
+        /* Component: sidebarOpen=false -> wrapper HAS .hidden. Button has NO .open. */
+
+        /* So when sidebarOpen is true (default), button has .open class. */
         &.open {
             left: 200px;
+        }
+
+        /* When sidebarOpen is false, button has NO .open class. Sidebar width is 0. Button should be at 0. */
+        &:not(.open) {
+            left: 0;
         }
     }
 }

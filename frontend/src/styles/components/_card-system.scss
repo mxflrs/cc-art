@@ -1,0 +1,30 @@
+.card-system {
+    &-container {
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+    }
+
+    &-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: $text-color;
+        }
+    }
+
+    &-empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: $bg-color-container;
+        border-radius: $border-radius-card;
+        border: 1px solid $border-color-base;
+    }
+}

@@ -1,0 +1,35 @@
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    color: $text-color-secondary;
+    margin-bottom: 24px;
+    font-size: $font-size-base;
+
+    &-item {
+        display: flex;
+        align-items: center;
+    }
+
+    &-link {
+        cursor: pointer;
+        color: $text-color-secondary;
+        transition: color 0.3s;
+        text-decoration: none;
+
+        &:hover {
+            color: $primary-hover;
+        }
+
+        &--active {
+            color: $text-color;
+            font-weight: 600;
+            cursor: default;
+        }
+    }
+
+    &-separator {
+        margin: 0 8px;
+        color: $text-color-tertiary;
+        font-size: 12px;
+    }
+}

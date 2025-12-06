@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    color: $text-color;
+    font-weight: 500;
+    font-family: $font-family-secondary;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1em;
+    color: $text-color-secondary;
+    font-family: $font-family-secondary;
+}
+
+a {
+    color: $primary-color;
+    text-decoration: none;
+    transition: color 0.3s;
+
+    &:hover {
+        color: $primary-hover;
+    }
+}

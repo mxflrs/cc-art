@@ -1,0 +1,82 @@
+.card {
+    background-color: $bg-color-container;
+    border: 1px solid $border-color-split;
+    border-radius: $border-radius-card;
+    padding: 24px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    transition: all 0.3s;
+    cursor: default;
+    /* removed shadow */
+
+    &--clickable {
+        cursor: pointer;
+
+        &:hover {
+            /* removed hover shadow */
+            transform: translateY(-2px);
+            border-color: transparent;
+        }
+    }
+
+    &-header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 16px;
+    }
+
+    &-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 400;
+        color: $text-color-secondary;
+        line-height: 1.5;
+    }
+
+    &-subtitle {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: $text-color-secondary;
+    }
+
+    &-alias {
+        font-size: 48px;
+        font-weight: 700;
+        color: $primary-color;
+        font-family: 'Georgia', serif;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    &-image-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 12px 0;
+        overflow: hidden;
+
+        img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+    }
+
+    &-footer {
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid $border-color-split;
+    }
+
+    &-delete-btn-wrapper {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+    }
+}

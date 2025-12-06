@@ -1,0 +1,66 @@
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    position: relative;
+}
+
+.input-label {
+    font-size: $font-size-base;
+    color: $text-color;
+
+    /* Required mark if needed */
+    /* &::before { content: '*'; color: $error-color; margin-right: 4px; } */
+}
+
+.input-field {
+    padding: 4px 11px;
+    /* Ant Design input padding */
+    height: 32px;
+    border-radius: $border-radius-base;
+    border: 1px solid $border-color-base;
+    background-color: #fff;
+    color: $text-color;
+    font-size: $font-size-base;
+    font-family: $font-family;
+    transition: all 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+        border-color: $primary-hover;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: $primary-hover;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        /* Focus ring */
+    }
+
+    &::placeholder {
+        color: $text-color-tertiary;
+    }
+
+    &--error {
+        border-color: $error-color;
+
+        &:hover {
+            border-color: $error-color;
+        }
+
+        &:focus {
+            border-color: $error-color;
+            box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+        }
+    }
+}
+
+.input-error-message {
+    font-size: 12px;
+    color: $error-color;
+    min-height: 20px;
+    /* Prevent layout shift */
+    line-height: 1.5;
+}

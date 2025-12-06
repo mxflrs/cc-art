@@ -1,0 +1,90 @@
+.btn {
+    padding: 6px 16px;
+    height: 32px;
+    border-radius: $border-radius-base;
+    border: 1px solid transparent;
+    font-size: $font-size-base;
+    font-weight: 500;
+    font-family: $font-family;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    user-select: none;
+    outline: none;
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $primary-color;
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    // Variants
+    &-primary {
+        background-color: $primary-color;
+        color: #fff;
+        border-color: $primary-color;
+
+        &:hover:not(:disabled) {
+            background-color: $primary-hover;
+            border-color: $primary-hover;
+        }
+    }
+
+    &-secondary {
+        background-color: #f5f5f5;
+        color: $text-color;
+        border-color: transparent;
+
+        &:hover:not(:disabled) {
+            background-color: #e0e0e0;
+        }
+    }
+
+    &-outlined {
+        background-color: transparent;
+        color: $text-color;
+        border-color: $border-color-base;
+
+        &:hover:not(:disabled) {
+            border-color: $text-color;
+        }
+    }
+
+    &-text {
+        background-color: transparent;
+        color: $text-color;
+        padding: 6px 12px;
+        height: auto;
+
+        &:hover:not(:disabled) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    &-icon {
+        padding: 4px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: transparent;
+        color: $text-color-secondary;
+        font-size: 18px;
+        line-height: 1;
+
+        &:hover:not(:disabled) {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: $text-color;
+        }
+    }
+}

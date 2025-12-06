@@ -1,0 +1,13 @@
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* Always 2 columns as requested */
+    gap: 24px;
+    width: 100%;
+    padding: 0;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        /* Responsive fallback */
+    }
+}

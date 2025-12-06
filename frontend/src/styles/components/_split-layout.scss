@@ -1,0 +1,61 @@
+.split-layout {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 64px);
+    margin-top: 64px;
+    background-color: $bg-color-base;
+    overflow: hidden;
+    position: relative;
+
+    &-sidebar-wrapper {
+        height: 100%;
+        background-color: $bg-color-container;
+        z-index: 10;
+        transition: transform 0.3s ease;
+
+        &.hidden {
+            transform: translateX(-100%);
+        }
+    }
+
+    &-main {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        background-color: $bg-color-base;
+    }
+
+    &-toggle-btn {
+        position: fixed;
+        left: 0;
+        bottom: 20px;
+        background-color: $bg-color-container;
+        border: 1px solid $border-color-split;
+        border-left: none;
+        border-radius: 0 4px 4px 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        transition: all 0.2s;
+        color: $text-color-secondary;
+        font-size: 16px;
+        outline: none;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:hover {
+            background-color: $primary-color;
+            color: white;
+        }
+
+        &.open {
+            left: 200px;
+        }
+    }
+}

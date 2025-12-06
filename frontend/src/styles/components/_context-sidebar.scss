@@ -1,0 +1,76 @@
+.context-sidebar {
+    width: 200px;
+    background-color: $bg-color-container;
+    border-right: 1px solid $border-color-split;
+    padding: 12px 24px;
+    height: 100%;
+    overflow-y: auto;
+    flex-shrink: 0;
+
+    &-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+
+        &-item {
+            position: relative;
+            padding-bottom: 24px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+
+            &:hover {
+                opacity: 0.8;
+            }
+
+            &.active {
+                cursor: default;
+                opacity: 1;
+
+                .context-sidebar-placeholder {
+                    border-color: $primary-color;
+                    color: $primary-color;
+                    background-color: rgba(0, 0, 0, 0.02);
+                }
+            }
+        }
+    }
+
+    &-line {
+        position: absolute;
+        top: -24px;
+        left: 50%;
+        width: 2px;
+        height: 24px;
+        background-color: $border-color-split;
+        transform: translateX(-50%);
+        z-index: 0;
+    }
+
+    &-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: $text-color-tertiary;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    &-card {
+        height: auto !important;
+        min-height: 120px;
+        border-width: 2px;
+    }
+
+    &-placeholder {
+        height: 80px;
+        border: 2px solid $border-color-split;
+        border-radius: $border-radius-card;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $text-color-tertiary;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+}

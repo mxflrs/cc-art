@@ -1,0 +1,62 @@
+.text {
+    margin: 0;
+    line-height: $line-height-base;
+    color: $text-color;
+
+    /* Variants */
+    &--h1 {
+        font-size: 38px;
+        font-weight: 600;
+        line-height: 1.23;
+        color: $text-color;
+    }
+
+    &--h2 {
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.35;
+        color: $text-color;
+    }
+
+    &--h3 {
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 1.35;
+        color: $text-color;
+    }
+
+    &--body {
+        font-size: $font-size-base;
+    }
+
+    &--caption {
+        font-size: 12px;
+        color: $text-color-secondary;
+    }
+
+    /* Weights */
+    &--regular {
+        font-weight: 400;
+    }
+
+    &--medium {
+        font-weight: 500;
+    }
+
+    &--bold {
+        font-weight: 600;
+    }
+
+    /* Align */
+    &--left {
+        text-align: left;
+    }
+
+    &--center {
+        text-align: center;
+    }
+
+    &--right {
+        text-align: right;
+    }
+}

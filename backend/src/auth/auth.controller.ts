@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -7,24 +7,19 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() req) {
-    // In a real app, use LocalGuard to validate credentials before calling login
-    // For simplicity, we'll validate here or assume pre-validation
-    const user = await this.authService.validateUser(req.email, req.password);
-    if (!user) {
-      return { message: 'Invalid credentials' };
-    }
-    return this.authService.login(user);
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() req: { email: string; password: string }) {
+    return this.authService.login(req.email, req.password);
   }
 
   @Post('register')
-  async register(@Body() createUserDto: any) {
+  async register(@Body() createUserDto: { email: string; password: string; firstName?: string; lastName?: string }) {
     return this.authService.register(createUserDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Request() req: any) {
+    return this.authService.getProfile(req.user.userId);
   }
 }

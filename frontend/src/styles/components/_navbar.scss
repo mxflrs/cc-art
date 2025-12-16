@@ -22,15 +22,6 @@
         display: flex;
         align-items: center;
         gap: 8px;
-
-        &::before {
-            content: '';
-            display: block;
-            width: 24px;
-            height: 24px;
-            background-color: $primary-color;
-            border-radius: 4px;
-        }
     }
 
     &-actions {

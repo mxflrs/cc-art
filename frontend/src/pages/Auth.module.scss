@@ -1,0 +1,81 @@
+@use '../styles/abstracts/variables' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: $bg-color-base;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    /* No shadow, no background color difference if we want super flat */
+    /* But a subtle border helps frame it */
+    border: 1px solid $border-color-base;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 600;
+    color: $text-color;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: $text-color-secondary;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.row {
+    display: flex;
+    gap: 1rem;
+
+    >* {
+        flex: 1;
+    }
+}
+
+.error {
+    background-color: rgba($error-color, 0.05);
+    color: $error-color;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid rgba($error-color, 0.2);
+}
+
+.footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 14px;
+    color: $text-color-secondary;
+}
+
+.link {
+    color: $text-color;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: $primary-color;
+    }
+}

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Place } from './place.entity';
 
 @Entity()
@@ -9,6 +9,9 @@ export class Item {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  alias: string;
+
   @Column({ type: 'float', nullable: true })
   width: number;
 
@@ -18,6 +21,12 @@ export class Item {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  playground: any;
+
   @ManyToOne(() => Place, (place) => place.items, { onDelete: 'CASCADE' })
   place: Place;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

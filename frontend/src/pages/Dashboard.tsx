@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../components/Dashboard/Card';
 import { Grid } from '../components/Dashboard/Grid';
 import { SplitLayout } from '../components/Dashboard/SplitLayout';
@@ -7,6 +8,7 @@ import { ContextSidebar } from '../components/Dashboard/ContextSidebar';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
+import { Breadcrumbs } from '../components/Dashboard/Breadcrumbs';
 import { cardService } from '../services/cardService';
 import type { Topic, Style, Place, Item } from '../types/card';
 
@@ -15,7 +17,9 @@ type Level = 'TOPIC' | 'STYLE' | 'PLACE' | 'ITEM';
 const PREDEFINED_PLACES = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom', 'Dining Room', 'Office', 'Garage', 'Garden', 'Other'];
 
 export const Dashboard: React.FC = () => {
-    const [level, setLevel] = useState<Level>('TOPIC');
+    const { topicId, styleId, placeId } = useParams<{ topicId?: string; styleId?: string; placeId?: string }>();
+    const navigate = useNavigate();
+
     const [topics, setTopics] = useState<Topic[]>([]);
     const [currentTopic, setCurrentTopic] = useState<Topic | null>(null);
     const [currentStyle, setCurrentStyle] = useState<Style | null>(null);
@@ -28,11 +32,22 @@ export const Dashboard: React.FC = () => {
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<{ id: number, type: Level } | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editId, setEditId] = useState<number | null>(null);
+
     const [modalName, setModalName] = useState('');
     const [modalWidth, setModalWidth] = useState('');
     const [modalHeight, setModalHeight] = useState('');
     const [modalImage, setModalImage] = useState<File | null>(null);
     const [selectedPlaceType, setSelectedPlaceType] = useState(PREDEFINED_PLACES[0]);
+
+    // Determine current level based on URL params
+    let level: Level = 'TOPIC';
+    if (placeId) level = 'ITEM';
+    else if (styleId) level = 'PLACE';
+    else if (topicId) level = 'STYLE';
 
     // Dropzone
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -46,43 +61,51 @@ export const Dashboard: React.FC = () => {
         multiple: false
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
-            if (level === 'TOPIC') {
-                const data = await cardService.getTopics();
-                setTopics(data);
-            } else if (level === 'STYLE' && currentTopic) {
-                const allTopics = await cardService.getTopics();
-                const topic = allTopics.find(t => t.id === currentTopic.id);
+            const allTopics = await cardService.getTopics();
+            setTopics(allTopics);
+
+            if (topicId) {
+                const topic = allTopics.find(t => t.id === Number(topicId));
                 if (topic) {
-                    setTopics(allTopics);
                     setCurrentTopic(topic);
                     setStylesList(topic.styles || []);
+
+                    if (styleId) {
+                        const style = topic.styles?.find(s => s.id === Number(styleId));
+                        if (style) {
+                            setCurrentStyle(style);
+                            setPlaces(style.places || []);
+
+                            if (placeId) {
+                                const place = style.places?.find(p => p.id === Number(placeId));
+                                if (place) {
+                                    setCurrentPlace(place);
+                                    setItems(place.items || []);
+                                }
+                            } else {
+                                setCurrentPlace(null);
+                            }
+                        }
+                    } else {
+                        setCurrentStyle(null);
+                        setCurrentPlace(null);
+                    }
                 }
-            } else if (level === 'PLACE' && currentStyle) {
-                const allTopics = await cardService.getTopics();
-                const topic = allTopics.find(t => t.id === currentTopic!.id);
-                const style = topic?.styles?.find(s => s.id === currentStyle.id);
-                if (style) {
-                    setCurrentStyle(style);
-                    setPlaces(style.places || []);
-                }
-            } else if (level === 'ITEM' && currentPlace) {
-                const allTopics = await cardService.getTopics();
-                const topic = allTopics.find(t => t.id === currentTopic!.id);
-                const style = topic?.styles?.find(s => s.id === currentStyle!.id);
-                const place = style?.places?.find(p => p.id === currentPlace.id);
-                if (place) {
-                    setCurrentPlace(place);
-                    setItems(place.items || []);
-                }
+            } else {
+                setCurrentTopic(null);
+                setCurrentStyle(null);
+                setCurrentPlace(null);
             }
         } catch (error) {
             console.error('Failed to fetch data', error);
         }
-    };
+    }, [topicId, styleId, placeId]);
 
-    // Note: fetchData is called in the useEffect to sync data when navigation changes
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleCreate = async () => {
         let nameToCreate = modalName;
@@ -99,32 +122,38 @@ export const Dashboard: React.FC = () => {
         }
 
         try {
-            if (level === 'TOPIC') {
-                await cardService.createTopic(nameToCreate);
-            } else if (level === 'STYLE' && currentTopic) {
-                await cardService.createStyle(nameToCreate, currentTopic.id);
-            } else if (level === 'PLACE' && currentStyle) {
-                await cardService.createPlace(nameToCreate, currentStyle.id);
-            } else if (level === 'ITEM' && currentPlace) {
-                if (!modalWidth || !modalHeight) {
-                    alert('Width and Height are required');
-                    return;
+            if (isEditing && editId) {
+                // Handle Update logic here (placeholder for now as requested)
+                console.log('Update feature triggered for', editId, nameToCreate);
+                alert('Update feature coming soon!');
+            } else {
+                if (level === 'TOPIC') {
+                    await cardService.createTopic(nameToCreate);
+                } else if (level === 'STYLE' && currentTopic) {
+                    await cardService.createStyle(nameToCreate, currentTopic.id);
+                } else if (level === 'PLACE' && currentStyle) {
+                    await cardService.createPlace(nameToCreate, currentStyle.id);
+                } else if (level === 'ITEM' && currentPlace) {
+                    if (!modalWidth || !modalHeight) {
+                        alert('Width and Height are required');
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('name', nameToCreate);
+                    formData.append('width', modalWidth);
+                    formData.append('height', modalHeight);
+                    formData.append('placeId', currentPlace.id.toString());
+                    if (modalImage) {
+                        formData.append('image', modalImage);
+                    }
+                    await cardService.createItem(formData);
                 }
-                const formData = new FormData();
-                formData.append('name', nameToCreate);
-                formData.append('width', modalWidth);
-                formData.append('height', modalHeight);
-                formData.append('placeId', currentPlace.id.toString());
-                if (modalImage) {
-                    formData.append('image', modalImage);
-                }
-                await cardService.createItem(formData);
             }
             fetchData();
             closeModal();
         } catch (error) {
-            console.error('Create failed', error);
-            alert('Failed to create item');
+            console.error('Operation failed', error);
+            alert('Failed to save');
         }
     };
 
@@ -134,39 +163,74 @@ export const Dashboard: React.FC = () => {
         setModalHeight('');
         setModalImage(null);
         setSelectedPlaceType(PREDEFINED_PLACES[0]);
+        setIsEditing(false);
+        setEditId(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (e: React.MouseEvent, item: any, type: Level) => {
+        e.stopPropagation();
+        setModalName(item.name);
+        if (type === 'ITEM') {
+            setModalWidth(item.width);
+            setModalHeight(item.height);
+        }
+        setIsEditing(true);
+        setEditId(item.id);
         setIsModalOpen(true);
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
+        setIsEditing(false);
+        setEditId(null);
     };
 
-    const handleDelete = async (e: React.MouseEvent, id: number, type: Level) => {
+    const handleDeleteClick = (e: React.MouseEvent, id: number, type: Level) => {
         e.stopPropagation();
-        if (!confirm('Are you sure? This will delete all nested items.')) return;
+        setItemToDelete({ id, type });
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
 
         try {
-            if (type === 'TOPIC') await cardService.deleteTopic(id);
-            else if (type === 'ITEM') await cardService.deleteItem(id);
+            if (itemToDelete.type === 'TOPIC') await cardService.deleteTopic(itemToDelete.id);
+            else if (itemToDelete.type === 'ITEM') await cardService.deleteItem(itemToDelete.id);
             fetchData();
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
         } catch (error) {
             console.error('Delete failed', error);
         }
-    }
+    };
 
     const handleNavigate = (targetLevel: Level) => {
-        setLevel(targetLevel);
+        // This function is mainly for the sidebar back navigation
         if (targetLevel === 'TOPIC') {
-            setCurrentTopic(null);
-            setCurrentStyle(null);
-            setCurrentPlace(null);
-        } else if (targetLevel === 'STYLE') {
-            setCurrentStyle(null);
-            setCurrentPlace(null);
-        } else if (targetLevel === 'PLACE') {
-            setCurrentPlace(null);
+            navigate('/');
+        } else if (targetLevel === 'STYLE' && currentTopic) {
+            navigate(`/topic/${currentTopic.id}`);
+        } else if (targetLevel === 'PLACE' && currentTopic && currentStyle) {
+            navigate(`/topic/${currentTopic.id}/style/${currentStyle.id}`);
         }
     };
+
+    // Generate breadcrumbs
+    const breadcrumbs = [
+        { label: 'Dashboard', onClick: () => navigate('/') }
+    ];
+
+    if (currentTopic) {
+        breadcrumbs.push({ label: currentTopic.name, onClick: () => navigate(`/topic/${currentTopic.id}`) });
+    }
+    if (currentStyle) {
+        breadcrumbs.push({ label: currentStyle.name, onClick: () => navigate(`/topic/${currentTopic?.id}/style/${currentStyle.id}`) });
+    }
+    if (currentPlace) {
+        breadcrumbs.push({ label: currentPlace.name, onClick: () => navigate(`/topic/${currentTopic?.id}/style/${currentStyle?.id}/place/${currentPlace.id}`) });
+    }
 
     return (
         <SplitLayout
@@ -180,6 +244,10 @@ export const Dashboard: React.FC = () => {
                 />
             }
         >
+            <div style={{ padding: '0 24px' }}>
+                <Breadcrumbs items={breadcrumbs} />
+            </div>
+
             <div className="card-system-header">
                 <h1>
                     {level === 'TOPIC' && 'Topics'}
@@ -202,8 +270,9 @@ export const Dashboard: React.FC = () => {
                         title={topic.name}
                         alias={topic.alias}
                         subtitle={`${topic.styles?.length || 0} Styles`}
-                        onClick={() => { setCurrentTopic(topic); setLevel('STYLE'); }}
-                        onDelete={(e) => handleDelete(e, topic.id, 'TOPIC')}
+                        onClick={() => navigate(`/topic/${topic.id}`)}
+                        onDelete={(e) => handleDeleteClick(e, topic.id, 'TOPIC')}
+                        onEdit={(e) => handleEdit(e, topic, 'TOPIC')}
                     />
                 ))}
 
@@ -227,7 +296,7 @@ export const Dashboard: React.FC = () => {
                         title={style.name}
                         alias={style.alias}
                         subtitle={`${style.places?.length || 0} Places`}
-                        onClick={() => { setCurrentStyle(style); setLevel('PLACE'); }}
+                        onClick={() => navigate(`/topic/${currentTopic?.id}/style/${style.id}`)}
                     />
                 ))}
 
@@ -237,7 +306,7 @@ export const Dashboard: React.FC = () => {
                         title={place.name}
                         alias={place.alias}
                         subtitle={`${place.items?.length || 0} Items`}
-                        onClick={() => { setCurrentPlace(place); setLevel('ITEM'); }}
+                        onClick={() => navigate(`/topic/${currentTopic?.id}/style/${currentStyle?.id}/place/${place.id}`)}
                     />
                 ))}
 
@@ -248,7 +317,9 @@ export const Dashboard: React.FC = () => {
                         alias={`${currentTopic?.alias}${currentStyle?.alias}-${currentPlace?.alias}`} // A1-IV pattern
                         subtitle={`${item.width}x${item.height}`}
                         image={item.imageUrl ? `http://localhost:3000/uploads/${item.imageUrl}` : undefined}
-                        onDelete={(e) => handleDelete(e, item.id, 'ITEM')}
+                        onClick={() => navigate(`/topic/${currentTopic?.id}/style/${currentStyle?.id}/place/${currentPlace?.id}/item/${item.id}`)}
+                        onDelete={(e) => handleDeleteClick(e, item.id, 'ITEM')}
+                        onEdit={(e) => handleEdit(e, item, 'ITEM')}
                     />
                 ))}
             </Grid>
@@ -256,11 +327,11 @@ export const Dashboard: React.FC = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                title={`Create New ${level.charAt(0) + level.slice(1).toLowerCase()}`}
+                title={`${isEditing ? 'Edit' : 'Create New'} ${level.charAt(0) + level.slice(1).toLowerCase()}`}
                 footer={
                     <>
                         <Button variant="secondary" onClick={closeModal} style={{ width: 'auto' }}>Cancel</Button>
-                        <Button variant="primary" onClick={handleCreate} style={{ width: 'auto' }}>Create</Button>
+                        <Button variant="primary" onClick={handleCreate} style={{ width: 'auto' }}>{isEditing ? 'Save' : 'Create'}</Button>
                     </>
                 }
             >
@@ -335,6 +406,20 @@ export const Dashboard: React.FC = () => {
                         </>
                     )}
                 </div>
+            </Modal>
+
+            <Modal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                title="Confirm Delete"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)} style={{ width: 'auto' }}>Cancel</Button>
+                        <Button variant="primary" onClick={confirmDelete} style={{ width: 'auto', backgroundColor: '#d32f2f' }}>Delete</Button>
+                    </>
+                }
+            >
+                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
             </Modal>
         </SplitLayout>
     );

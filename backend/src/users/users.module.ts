@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
-import { User } from './entities/user.entity';
 import { CreateUserHandler } from './commands/create-user.handler';
 import { GetUserByEmailHandler } from './queries/get-user-by-email.handler';
+import { UsersController } from './users.controller';
+import { UpdateUserHandler } from './commands/update-user.handler';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    CqrsModule,
-  ],
-  providers: [CreateUserHandler, GetUserByEmailHandler],
-  exports: [TypeOrmModule], // Export TypeOrmModule to use repository in AuthModule
+  imports: [CqrsModule],
+  controllers: [UsersController],
+  providers: [CreateUserHandler, GetUserByEmailHandler, UpdateUserHandler],
+  exports: [],
 })
 export class UsersModule {}

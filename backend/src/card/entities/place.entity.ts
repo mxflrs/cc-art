@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
 import { Style } from './style.entity';
 import { Item } from './item.entity';
 
@@ -18,4 +18,7 @@ export class Place {
 
   @OneToMany(() => Item, (item) => item.place, { cascade: true })
   items: Item[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

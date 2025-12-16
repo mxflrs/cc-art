@@ -1,28 +1,38 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { CreateUserCommand } from './create-user.command';
-import { User } from '../entities/user.entity';
+import { GcpService } from '../../gcp/gcp.service';
+import * as bcrypt from 'bcrypt';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+  constructor(private readonly gcpService: GcpService) {}
 
-  async execute(command: CreateUserCommand): Promise<User> {
+  async execute(command: CreateUserCommand): Promise<UserProfile> {
     const { email, password, firstName, lastName } = command;
-    const hashedPassword = await bcrypt.hash(password, 10);
     
-    const user = this.userRepository.create({
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-    });
+    // Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    return this.userRepository.save(user);
+    // Create user in database
+    const user = await this.gcpService.queryOne<UserProfile>(
+      'INSERT INTO users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name, created_at, updated_at',
+      [email, passwordHash, firstName || null, lastName || null]
+    );
+
+    if (!user) {
+      throw new Error('Failed to create user');
+    }
+
+    return user;
   }
 }

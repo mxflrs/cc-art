@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { useAuthStore } from '../store/useAuthStore';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { Text } from '../components/Text';
+import styles from './Auth.module.scss';
 
 export const Register: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -20,13 +20,15 @@ export const Register: React.FC = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const register = useAuthStore((state) => state.register);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
         try {
-            await axios.post('http://localhost:3000/auth/register', formData);
+            await register(formData.email, formData.password, formData.firstName, formData.lastName);
             navigate('/login');
         } catch (err: any) {
             setError(err.response?.data?.message || 'Registration failed');
@@ -36,73 +38,65 @@ export const Register: React.FC = () => {
     };
 
     return (
-        <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                <Text variant="h1" align="center" style={{ marginBottom: '0.5rem' }}>Create account</Text>
-                <Text variant="body" align="center" color="var(--text-secondary)">Start your journey with us today</Text>
-            </div>
-
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <Input
-                        label="First Name"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="John"
-                    />
-                    <Input
-                        label="Last Name"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Doe"
-                    />
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <div className={styles.title}>Create account</div>
+                    <div className={styles.subtitle}>Start your journey with us today</div>
                 </div>
 
-                <Input
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="name@example.com"
-                    required
-                />
-
-                <Input
-                    label="Password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create a strong password"
-                    required
-                />
-
-                {error && (
-                    <div style={{
-                        color: 'var(--error-color)',
-                        backgroundColor: 'rgba(242, 184, 181, 0.1)',
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        textAlign: 'center'
-                    }}>
-                        <Text variant="caption" color="var(--error-color)">{error}</Text>
+                <form onSubmit={handleSubmit} className={styles.form}>
+                    <div className={styles.row}>
+                        <Input
+                            label="First Name"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            placeholder="John"
+                        />
+                        <Input
+                            label="Last Name"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            placeholder="Doe"
+                        />
                     </div>
-                )}
 
-                <div style={{ marginTop: '0.5rem' }}>
-                    <Button type="submit" isLoading={isLoading}>
+                    <Input
+                        label="Email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="name@example.com"
+                        required
+                    />
+
+                    <Input
+                        label="Password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Create a strong password"
+                        required
+                    />
+
+                    {error && (
+                        <div className={styles.error}>
+                            {error}
+                        </div>
+                    )}
+
+                    <Button type="submit" isLoading={isLoading} style={{ width: '100%', marginTop: '0.5rem' }}>
                         Create account
                     </Button>
-                </div>
-            </form>
+                </form>
 
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                <Text variant="caption" align="center" color="var(--text-secondary)">
-                    Already have an account? <Link to="/login" style={{ color: 'var(--primary-color)' }}>Sign in</Link>
-                </Text>
+                <div className={styles.footer}>
+                    Already have an account? <Link to="/login" className={styles.link}>Sign in</Link>
+                </div>
             </div>
         </div>
     );

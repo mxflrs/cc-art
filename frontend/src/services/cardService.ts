@@ -38,5 +38,15 @@ export const cardService = {
   },
   deleteItem: async (id: number) => {
       await axios.delete(`${API_URL}/item/${id}`);
+  },
+
+  getItem: async (id: number) => {
+    const response = await axios.get<Item>(`${API_URL}/item/${id}`);
+    return response.data;
+  },
+
+  updateItemPlayground: async (id: number, playground: any) => {
+    const response = await axios.patch<Item>(`${API_URL}/item/${id}/playground`, { playground });
+    return response.data;
   }
 };

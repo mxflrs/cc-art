@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CardService } from './card.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { CreateStyleDto } from './dto/create-style.dto';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { CreateItemDto } from './dto/create-item.dto';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+type MulterFile = Express.Multer.File;
 
 @Controller('card')
 export class CardController {
@@ -39,28 +41,30 @@ export class CardController {
 
   @Post('item')
   @UseInterceptors(FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        return cb(null, `${randomName}${extname(file.originalname)}`);
-      }
-    })
+    storage: memoryStorage(), // Use memory storage instead of disk
   }))
-  createItem(@Body() dto: CreateItemDto, @UploadedFile() file: any) {
-    if (file) {
-      dto.imageUrl = file.filename;
-    }
+  createItem(@Body() dto: CreateItemDto, @UploadedFile() file: MulterFile) {
     // Parse IDs and dimensions if they come as strings from FormData
     if (typeof dto.placeId === 'string') dto.placeId = parseInt(dto.placeId);
     if (typeof dto.width === 'string') dto.width = parseFloat(dto.width);
     if (typeof dto.height === 'string') dto.height = parseFloat(dto.height);
     
-    return this.cardService.createItem(dto);
+    // Pass file buffer and name to service for Cloud Storage upload
+    return this.cardService.createItem(dto, file?.buffer, file?.originalname);
   }
-  
+
+  @Get('item/:id')
+  getItem(@Param('id') id: string) {
+    return this.cardService.getItem(+id);
+  }
+
+  @Patch('item/:id/playground')
+  updateItemPlayground(@Param('id') id: string, @Body() body: { playground: any }) {
+    return this.cardService.updateItemPlayground(+id, body.playground);
+  }
+
   @Delete('item/:id')
   deleteItem(@Param('id') id: string) {
-      return this.cardService.deleteItem(+id);
+    return this.cardService.deleteItem(+id);
   }
 }

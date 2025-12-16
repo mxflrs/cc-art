@@ -1,17 +1,22 @@
-
 services:
   postgres:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: nest_app
+      POSTGRES_DB: acc_dev
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./cloudsql-schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -24,14 +29,29 @@ services:
       - /app/node_modules
     command: npm run start:dev
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: nest_app
-      JWT_SECRET: supersecretkey
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/acc_dev
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    environment:
+      VITE_API_URL: http://localhost:3000
+    depends_on:
+      - backend
     networks:
       - app-network
 

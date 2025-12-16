@@ -1,0 +1,24 @@
+# Production docker-compose for GCP deployment
+# Use this with Cloud Run or GKE
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
+      NODE_ENV: production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_URL: ${API_URL}

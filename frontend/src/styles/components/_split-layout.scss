@@ -13,8 +13,8 @@
         background-color: $bg-color-container;
         z-index: 10;
         transition: width 0.3s ease, min-width 0.3s ease, flex-basis 0.3s ease;
-        width: 200px;
-        min-width: 200px;
+        width: 300px;
+        min-width: 300px;
         flex-shrink: 0;
         overflow: hidden;
 
@@ -36,7 +36,7 @@
 
     &-toggle-btn {
         position: fixed;
-        left: 200px;
+        left: 300px;
         /* Initial position matches sidebar width */
         bottom: 20px;
         background-color: $bg-color-container;
@@ -71,7 +71,7 @@
 
         /* So when sidebarOpen is true (default), button has .open class. */
         &.open {
-            left: 200px;
+            left: 300px;
         }
 
         /* When sidebarOpen is false, button has NO .open class. Sidebar width is 0. Button should be at 0. */

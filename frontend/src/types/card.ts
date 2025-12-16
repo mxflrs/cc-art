@@ -24,8 +24,10 @@ export interface Place {
 export interface Item {
   id: number;
   name: string;
+  alias?: string;
   width: number;
   height: number;
   imageUrl?: string;
   placeId: number;
+  playground?: any;
 }

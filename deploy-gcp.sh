@@ -65,7 +65,32 @@ gcloud run deploy $SERVICE_NAME \
   --set-env-vars="JWT_SECRET=YOUR_JWT_SECRET" \
   --set-env-vars="GCS_BUCKET_NAME=$BUCKET_NAME"
 
+# 5. Get Backend URL
+echo "🔍 Getting Backend URL..."
+BACKEND_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
+echo "Backend is running at: $BACKEND_URL"
+
+# 6. Build and deploy frontend to Cloud Run
+echo "🎨 Building and deploying frontend..."
+cd ../frontend
+
+# Submit build to Cloud Build (needed to pass build-arg for VITE_API_URL)
+gcloud builds submit \
+  --tag gcr.io/$PROJECT_ID/acc-dev-frontend \
+  --build-arg VITE_API_URL=$BACKEND_URL \
+  .
+
+# Deploy the built image
+gcloud run deploy acc-dev-frontend \
+  --image gcr.io/$PROJECT_ID/acc-dev-frontend \
+  --platform managed \
+  --region $REGION \
+  --allow-unauthenticated
+
 echo "✅ Deployment complete!"
+echo ""
+echo "🌍 Frontend: $(gcloud run services describe acc-dev-frontend --platform managed --region $REGION --format 'value(status.url)')"
+echo "🔌 Backend:  $BACKEND_URL"
 echo ""
 echo "⚠️  IMPORTANT: Update the following:"
 echo "   1. Replace YOUR_DB_PASSWORD with your Cloud SQL password"

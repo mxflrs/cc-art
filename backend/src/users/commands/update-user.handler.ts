@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdateUserCommand } from './update-user.command';
-import { GcpService } from '../../gcp/gcp.service';
+import { DatabaseService } from '../../database/database.service';
 
 export interface UpdatedProfile {
   id: string;
@@ -11,7 +11,7 @@ export interface UpdatedProfile {
 
 @CommandHandler(UpdateUserCommand)
 export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand> {
-  constructor(private readonly gcpService: GcpService) {}
+  constructor(private readonly db: DatabaseService) {}
 
   async execute(command: UpdateUserCommand): Promise<UpdatedProfile> {
     const { userId, firstName, lastName, email } = command;
@@ -36,7 +36,7 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand> {
 
     params.push(userId);
 
-    const profile = await this.gcpService.queryOne<UpdatedProfile>(
+    const profile = await this.db.queryOne<UpdatedProfile>(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, first_name, last_name`,
       params
     );

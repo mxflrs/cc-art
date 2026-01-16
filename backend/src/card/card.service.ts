@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { GcpService } from '../gcp/gcp.service';
+import { DatabaseService } from '../database/database.service';
+import { StorageService } from '../storage/storage.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { CreateStyleDto } from './dto/create-style.dto';
 import { CreatePlaceDto } from './dto/create-place.dto';
@@ -57,7 +58,10 @@ export interface TopicHistory {
 
 @Injectable()
 export class CardService {
-  constructor(private readonly gcpService: GcpService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly storage: StorageService
+  ) {}
 
   // --- Helpers ---
 
@@ -86,13 +90,13 @@ export class CardService {
   // --- Topic ---
 
   async createTopic(dto: CreateTopicDto) {
-    const countResult = await this.gcpService.queryOne<{ count: string }>(
+    const countResult = await this.db.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM topics'
     );
     const count = parseInt(countResult?.count || '0', 10);
     const alias = this.toBase26(count + 1);
 
-    const topic = await this.gcpService.queryOne<Topic>(
+    const topic = await this.db.queryOne<Topic>(
       'INSERT INTO topics (name, alias) VALUES ($1, $2) RETURNING *',
       [dto.name, alias]
     );
@@ -102,16 +106,16 @@ export class CardService {
 
   async findAllTopics() {
     // Get all data
-    const topics = await this.gcpService.query<Topic>(
+    const topics = await this.db.query<Topic>(
       'SELECT * FROM topics ORDER BY created_at ASC'
     );
-    const styles = await this.gcpService.query<Style>(
+    const styles = await this.db.query<Style>(
       'SELECT * FROM styles'
     );
-    const places = await this.gcpService.query<Place>(
+    const places = await this.db.query<Place>(
       'SELECT * FROM places'
     );
-    const items = await this.gcpService.query<Item>(
+    const items = await this.db.query<Item>(
       'SELECT * FROM items'
     );
 
@@ -136,7 +140,7 @@ export class CardService {
 
   async deleteTopic(id: number) {
     // 1. Fetch topic to be deleted
-    const topicToDelete = await this.gcpService.queryOne<Topic>(
+    const topicToDelete = await this.db.queryOne<Topic>(
       'SELECT * FROM topics WHERE id = $1',
       [id]
     );
@@ -146,19 +150,19 @@ export class CardService {
     }
 
     // 2. Create history record for deletion
-    await this.gcpService.execute(
+    await this.db.execute(
       'INSERT INTO topic_history (topic_id, topic_name, event, old_alias, new_alias, details) VALUES ($1, $2, $3, $4, $5, $6)',
       [topicToDelete.id, topicToDelete.name, 'DELETED', topicToDelete.alias, null, JSON.stringify({ timestamp: new Date().toISOString() })]
     );
 
     // 3. Delete the topic (cascade will handle children)
-    await this.gcpService.execute(
+    await this.db.execute(
       'DELETE FROM topics WHERE id = $1',
       [id]
     );
 
     // 4. Fetch remaining topics ordered by creation time
-    const remainingTopics = await this.gcpService.query<Topic>(
+    const remainingTopics = await this.db.query<Topic>(
       'SELECT * FROM topics ORDER BY created_at ASC'
     );
 
@@ -171,13 +175,13 @@ export class CardService {
         const oldAlias = topic.alias;
 
         // Update topic
-        await this.gcpService.execute(
+        await this.db.execute(
           'UPDATE topics SET alias = $1 WHERE id = $2',
           [newAlias, topic.id]
         );
 
         // Create history record for re-indexing
-        await this.gcpService.execute(
+        await this.db.execute(
           'INSERT INTO topic_history (topic_id, topic_name, event, old_alias, new_alias, details) VALUES ($1, $2, $3, $4, $5, $6)',
           [topic.id, topic.name, 'REINDEXED', oldAlias, newAlias, JSON.stringify({ reason: 'Re-indexing after deletion' })]
         );
@@ -190,7 +194,7 @@ export class CardService {
   // --- Style ---
 
   async createStyle(dto: CreateStyleDto) {
-    const topic = await this.gcpService.queryOne<Topic>(
+    const topic = await this.db.queryOne<Topic>(
       'SELECT * FROM topics WHERE id = $1',
       [dto.topicId]
     );
@@ -199,14 +203,14 @@ export class CardService {
       throw new NotFoundException('Topic not found');
     }
 
-    const countResult = await this.gcpService.queryOne<{ count: string }>(
+    const countResult = await this.db.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM styles WHERE topic_id = $1',
       [dto.topicId]
     );
     const count = parseInt(countResult?.count || '0', 10);
     const alias = (count + 1).toString();
 
-    const style = await this.gcpService.queryOne<Style>(
+    const style = await this.db.queryOne<Style>(
       'INSERT INTO styles (name, alias, topic_id) VALUES ($1, $2, $3) RETURNING *',
       [dto.name, alias, dto.topicId]
     );
@@ -217,7 +221,7 @@ export class CardService {
   // --- Place ---
 
   async createPlace(dto: CreatePlaceDto) {
-    const style = await this.gcpService.queryOne<Style>(
+    const style = await this.db.queryOne<Style>(
       'SELECT * FROM styles WHERE id = $1',
       [dto.styleId]
     );
@@ -226,14 +230,14 @@ export class CardService {
       throw new NotFoundException('Style not found');
     }
 
-    const countResult = await this.gcpService.queryOne<{ count: string }>(
+    const countResult = await this.db.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM places WHERE style_id = $1',
       [dto.styleId]
     );
     const count = parseInt(countResult?.count || '0', 10);
     const alias = this.toRoman(count + 1);
 
-    const place = await this.gcpService.queryOne<Place>(
+    const place = await this.db.queryOne<Place>(
       'INSERT INTO places (name, alias, style_id) VALUES ($1, $2, $3) RETURNING *',
       [dto.name, alias, dto.styleId]
     );
@@ -244,7 +248,7 @@ export class CardService {
   // --- Item ---
 
   async createItem(dto: CreateItemDto, fileBuffer?: Buffer, fileName?: string) {
-    const place = await this.gcpService.queryOne<Place>(
+    const place = await this.db.queryOne<Place>(
       'SELECT * FROM places WHERE id = $1',
       [dto.placeId]
     );
@@ -255,20 +259,20 @@ export class CardService {
 
     let imageUrl: string | null = null;
 
-    // Upload file to Cloud Storage if provided
+    // Upload file if provided
     if (fileBuffer && fileName) {
       const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
       const ext = fileName.split('.').pop();
       const storagePath = `items/${randomName}.${ext}`;
 
-      imageUrl = await this.gcpService.uploadFile(
+      imageUrl = await this.storage.uploadFile(
         fileBuffer,
         storagePath,
         `image/${ext}`
       );
     }
 
-    const item = await this.gcpService.queryOne<Item>(
+    const item = await this.db.queryOne<Item>(
       'INSERT INTO items (name, alias, width, height, image_url, playground, place_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
       [
         dto.name,
@@ -285,7 +289,7 @@ export class CardService {
   }
 
   async getItem(id: number) {
-    const item = await this.gcpService.queryOne<Item>(
+    const item = await this.db.queryOne<Item>(
       'SELECT * FROM items WHERE id = $1',
       [id]
     );
@@ -298,7 +302,7 @@ export class CardService {
   }
 
   async updateItemPlayground(id: number, playground: any) {
-    const item = await this.gcpService.queryOne<Item>(
+    const item = await this.db.queryOne<Item>(
       'UPDATE items SET playground = $1 WHERE id = $2 RETURNING *',
       [JSON.stringify(playground), id]
     );
@@ -308,23 +312,17 @@ export class CardService {
 
   async deleteItem(id: number) {
     // Get item to find image URL for cleanup
-    const item = await this.gcpService.queryOne<{ image_url: string }>(
+    const item = await this.db.queryOne<{ image_url: string }>(
       'SELECT image_url FROM items WHERE id = $1',
       [id]
     );
 
     // Delete from storage if exists
     if (item?.image_url) {
-      const bucketName = this.gcpService.getBucket()?.name;
-      if (bucketName && item.image_url.includes(bucketName)) {
-        const path = item.image_url.split(`${bucketName}/`)[1];
-        if (path) {
-          await this.gcpService.deleteFile(path);
-        }
-      }
+        await this.storage.deleteFile(item.image_url);
     }
 
-    await this.gcpService.execute(
+    await this.db.execute(
       'DELETE FROM items WHERE id = $1',
       [id]
     );

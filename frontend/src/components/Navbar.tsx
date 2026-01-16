@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
+import { ServerStatus } from './ServerStatus';
 import logo from '../assets/logo.svg';
 
 export const Navbar: React.FC = () => {
@@ -20,6 +21,8 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="navbar-actions">
+                <ServerStatus />
+
                 <div className="navbar-profile" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
                     <div className="navbar-avatar">
                         {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || <span className="material-icons" style={{ fontSize: '20px' }}>person</span>}

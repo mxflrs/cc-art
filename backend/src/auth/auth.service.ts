@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { GcpService } from '../gcp/gcp.service';
+import { DatabaseService } from '../database/database.service';
 import * as bcrypt from 'bcrypt';
 
 interface UserRecord {
@@ -15,13 +15,13 @@ interface UserRecord {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly gcpService: GcpService,
+    private readonly db: DatabaseService,
     private readonly jwtService: JwtService,
   ) {}
 
   async login(email: string, password: string) {
     // Find user by email
-    const user = await this.gcpService.queryOne<UserRecord>(
+    const user = await this.db.queryOne<UserRecord>(
       'SELECT * FROM users WHERE email = $1',
       [email]
     );
@@ -60,7 +60,7 @@ export class AuthService {
     const { email, password, firstName, lastName } = createUserDto;
 
     // Check if user already exists
-    const existingUser = await this.gcpService.queryOne<{ id: string }>(
+    const existingUser = await this.db.queryOne<{ id: string }>(
       'SELECT id FROM users WHERE email = $1',
       [email]
     );
@@ -74,7 +74,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Create user
-    const user = await this.gcpService.queryOne<UserRecord>(
+    const user = await this.db.queryOne<UserRecord>(
       'INSERT INTO users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING *',
       [email, passwordHash, firstName || null, lastName || null]
     );
@@ -100,7 +100,7 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.gcpService.queryOne<UserRecord>(
+    const user = await this.db.queryOne<UserRecord>(
       'SELECT id, email, first_name, last_name FROM users WHERE id = $1',
       [userId]
     );

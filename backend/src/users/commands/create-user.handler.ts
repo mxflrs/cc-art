@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateUserCommand } from './create-user.command';
-import { GcpService } from '../../gcp/gcp.service';
+import { DatabaseService } from '../../database/database.service';
 import * as bcrypt from 'bcrypt';
 
 export interface UserProfile {
@@ -14,7 +14,7 @@ export interface UserProfile {
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
-  constructor(private readonly gcpService: GcpService) {}
+  constructor(private readonly db: DatabaseService) {}
 
   async execute(command: CreateUserCommand): Promise<UserProfile> {
     const { email, password, firstName, lastName } = command;
@@ -24,7 +24,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Create user in database
-    const user = await this.gcpService.queryOne<UserProfile>(
+    const user = await this.db.queryOne<UserProfile>(
       'INSERT INTO users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name, created_at, updated_at',
       [email, passwordHash, firstName || null, lastName || null]
     );

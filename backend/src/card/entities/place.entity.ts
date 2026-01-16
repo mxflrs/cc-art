@@ -1,24 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
-import { Style } from './style.entity';
 import { Item } from './item.entity';
 
-@Entity()
 export class Place {
-  @PrimaryGeneratedColumn()
   id: number;
-
-  @Column()
   name: string;
-
-  @Column()
-  alias: string; // I, II, III...
-
-  @ManyToOne(() => Style, (style) => style.places, { onDelete: 'CASCADE' })
-  style: Style;
-
-  @OneToMany(() => Item, (item) => item.place, { cascade: true })
+  alias: string;
+  styleId: number;
   items: Item[];
-
-  @CreateDateColumn()
-  createdAt: Date;
 }

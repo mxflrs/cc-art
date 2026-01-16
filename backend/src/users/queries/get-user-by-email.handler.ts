@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { GetUserByEmailQuery } from './get-user-by-email.query';
-import { GcpService } from '../../gcp/gcp.service';
+import { DatabaseService } from '../../database/database.service';
 
 export interface UserWithProfile {
   id: string;
@@ -11,10 +11,10 @@ export interface UserWithProfile {
 
 @QueryHandler(GetUserByEmailQuery)
 export class GetUserByEmailHandler implements IQueryHandler<GetUserByEmailQuery> {
-  constructor(private readonly gcpService: GcpService) {}
+  constructor(private readonly db: DatabaseService) {}
 
   async execute(query: GetUserByEmailQuery): Promise<UserWithProfile | null> {
-    const user = await this.gcpService.queryOne<UserWithProfile>(
+    const user = await this.db.queryOne<UserWithProfile>(
       'SELECT id, email, first_name, last_name FROM users WHERE email = $1',
       [query.email]
     );
